@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright © 2025 Dezz (https://github.com/DezzK)
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <!-- App Name -->
+    <string name="app_name">Barrier Opener</string>
+
+    <!-- Menu items -->
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+
+    <!-- Activity Titles -->
+    <string name="title_edit_barrier">Edit Barrier</string>
+    <string name="title_add_barrier">Add Barrier</string>
+
+    <!-- Main Activity -->
+    <string name="overlay_permission_title">Overlay Permission Required</string>
+    <string name="overlay_permission_message">This app needs permission to display popups over other apps for barrier notifications.</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="cancel">Cancel</string>
+    <string name="permissions_required">Permissions required for app to function properly</string>
+    <string name="delete_barrier_title">Delete Barrier</string>
+    <string name="delete_barrier_message">Are you sure you want to delete "%s"?</string>
+    <string name="delete">Delete</string>
+    <string name="barrier_deleted">Barrier deleted</string>
+
+    <!-- Barrier List Adapter -->
+    <string name="location_format">%.6f, %.6f (%.0fm)</string>
+
+    <!-- Barrier Types -->
+    <string name="barrier_type_bidirectional">Bidirectional</string>
+    <string name="barrier_type_one_way">One-way</string>
+
+    <!-- Notifications -->
+    <string name="service_notification_title">Barrier Opener Active</string>
+    <string name="service_notification_text">Monitoring for barriers…</string>
+
+    <!-- Messages -->
+    <string name="permission_location_rationale">Location permission is required to detect barriers</string>
+    <string name="permission_call_rationale">Phone permission is required to call barriers</string>
+    <string name="overlay_permission_rationale">Overlay permission is required to show barrier popups</string>
+    <string name="location_permission_required">Location permission is required to show your current location</string>
+    <string name="location_permission_denied">Location permission was denied</string>
+    <string name="location_service_unavailable">Location service unavailable</string>
+    <string name="enable_location_services">Please enable location services</string>
+    <string name="select_location">Please select a location on the map</string>
+    <string name="barrier_updated">Barrier updated</string>
+    <string name="barrier_added">Barrier added</string>
+    <string name="unable_to_get_current_location">Unable to get current location. Please check your location settings.</string>
+    <string name="error_getting_location">Error getting location: %1$s</string>
+    <string name="error_updating_map_marker">Error updating map marker: %1$s</string>
+
+    <!-- Coordinate Formatting -->
+    <string name="coordinate_format">%.6f</string>
+    <string name="distance_meters">%d m</string>
+    <string name="angle_degrees">%d°</string>
+
+    <!-- Form Fields -->
+    <string name="hint_name">Name</string>
+    <string name="hint_phone">Phone Number</string>
+    <string name="hint_latitude">Latitude</string>
+    <string name="hint_longitude">Longitude</string>
+    <string name="label_detection_radius">Detection Radius</string>
+    <string name="label_barrier_heading">Barrier Direction</string>
+
+    <!-- Errors -->
+    <string name="error_name_required">Name is required</string>
+    <string name="error_phone_required">Phone number is required</string>
+    <string name="error_location_required">Please select a location on the map</string>
+    <string name="error_saving_barrier">Error saving barrier: %1$s</string>
+
+    <!-- Location -->
+    <string name="my_location">My Location</string>
+    <string name="zoom_in">Zoom in</string>
+    <string name="zoom_out">Zoom out</string>
+    <string name="label_latitude">Latitude</string>
+    <string name="label_longitude">Longitude</string>
+
+    <!-- Map Controls -->
+    <string name="map_loading">Loading map…</string>
+    <string name="map_error">Error loading map</string>
+
+    <!-- Section Headers -->
+    <string name="header_location">Location</string>
+    <string name="header_detection_settings">Detection Settings</string>
+
+    <!-- Main Activity -->
+    <string name="app_title">Barrier Opener Configuration</string>
+    <string name="hint_tap_to_add">Tap + to add a barrier\nLong press barrier to delete</string>
+
+    <!-- Popup Dialog -->
+    <string name="popup_title">Open barrier: %1$s?</string>
+    <string name="btn_yes">YES</string>
+    <string name="btn_no">NO</string>
+    <string name="btn_wait">Wait</string>
+    <string name="auto_dismiss">Auto-dismiss in %1$d seconds</string>
+
+    <!-- Popup Window -->
+    <string name="popup_title_window">Open barrier %s?</string>
+    <string name="btn_yes_window">Yes</string>
+    <string name="btn_no_window">No</string>
+    <string name="popup_calling_window">Calling %s…</string>
+
+    <!-- Location Service -->
+    <string name="location_timeout">Could not get location: timeout</string>
+    <string name="notification_channel_name">Barrier Opener Service</string>
+    <string name="notification_title">Barrier Opener</string>
+    <string name="notification_text">Monitoring for nearby barriers</string>
+    <string name="barrier_detected">Barrier detected: %1$s</string>
+    <string name="tap_to_open">Tap to open</string>
+
+    <!-- Add/Edit Barrier Screen -->
+    <string name="barrier_type">Barrier Type</string>
+    <string name="bidirectional">Bidirectional</string>
+    <string name="one_way">One Way</string>
+</resources>

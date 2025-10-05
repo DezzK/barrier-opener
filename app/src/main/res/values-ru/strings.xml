@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright © 2025 Dezz (https://github.com/DezzK)
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <!-- App Name -->
+    <string name="app_name">Открыватель шлагбаума</string>
+
+    <!-- Menu items -->
+    <string name="action_save">Сохранить</string>
+    <string name="action_delete">Удалить</string>
+
+    <!-- Activity Titles -->
+    <string name="title_edit_barrier">Редактировать шлагбаум</string>
+    <string name="title_add_barrier">Добавить шлагбаум</string>
+
+    <!-- Main Activity -->
+    <string name="overlay_permission_title">Требуется разрешение наложения</string>
+    <string name="overlay_permission_message">Приложению нужно разрешение на отображение всплывающих окон поверх других приложений для уведомлений о шлагбаумах.</string>
+    <string name="grant_permission">Предоставить доступ</string>
+    <string name="cancel">Отмена</string>
+    <string name="permissions_required">Для работы приложения требуются разрешения</string>
+    <string name="delete_barrier_title">Удаление шлагбаума</string>
+    <string name="delete_barrier_message">Вы уверены, что хотите удалить "%s"?</string>
+    <string name="delete">Удалить</string>
+    <string name="barrier_deleted">Шлагбаум удален</string>
+
+    <!-- Barrier List Adapter -->
+    <string name="location_format">%.6f, %.6f (%.0fм)</string>
+
+    <!-- Barrier Types -->
+    <string name="barrier_type_bidirectional">Двусторонний</string>
+    <string name="barrier_type_one_way">Односторонний</string>
+
+    <!-- Notifications -->
+    <string name="service_notification_title">Открыватель шлагбаума активен</string>
+    <string name="service_notification_text">Отслеживание шлагбаумов…</string>
+
+    <!-- Messages -->
+    <string name="permission_location_rationale">Для обнаружения шлагбаумов требуется разрешение на доступ к местоположению</string>
+    <string name="permission_call_rationale">Для вызова шлагбаумов требуется разрешение на звонки</string>
+    <string name="overlay_permission_rationale">Для отображения всплывающих окон шлагбаумов требуется разрешение на отображение поверх других окон</string>
+    <string name="location_permission_required">Для отображения вашего местоположения требуется разрешение</string>
+    <string name="location_permission_denied">В доступе к местоположению отказано</string>
+    <string name="location_service_unavailable">Служба местоположения недоступна</string>
+    <string name="enable_location_services">Пожалуйста, включите службы местоположения</string>
+    <string name="barrier_updated">Шлагбаум обновлен</string>
+    <string name="barrier_added">Шлагбаум добавлен</string>
+    <string name="unable_to_get_current_location">Не удалось определить текущее местоположение. Пожалуйста, проверьте настройки местоположения.</string>
+    <string name="error_getting_location">Ошибка при получении местоположения: %1$s</string>
+    <string name="error_updating_map_marker">Ошибка при обновлении маркера на карте: %1$s</string>
+
+    <!-- Coordinate Formatting -->
+    <string name="coordinate_format">%.6f</string>
+    <string name="distance_meters">%d м</string>
+    <string name="angle_degrees">%d°</string>
+
+    <!-- Form Fields -->
+    <string name="hint_name">Название</string>
+    <string name="hint_phone">Номер телефона</string>
+    <string name="hint_latitude">Широта</string>
+    <string name="hint_longitude">Долгота</string>
+    <string name="label_detection_radius">Радиус обнаружения</string>
+    <string name="label_barrier_heading">Направление шлагбаума</string>
+
+    <!-- Errors -->
+    <string name="error_name_required">Требуется название</string>
+    <string name="error_phone_required">Требуется номер телефона</string>
+    <string name="error_location_required">Пожалуйста, выберите местоположение на карте</string>
+    <string name="error_saving_barrier">Ошибка сохранения шлагбаума: %1$s</string>
+
+    <!-- Location -->
+    <string name="my_location">Мое местоположение</string>
+    <string name="zoom_in">Приблизить</string>
+    <string name="zoom_out">Отдалить</string>
+    <string name="label_latitude">Широта</string>
+    <string name="label_longitude">Долгота</string>
+
+    <!-- Location Service -->
+    <string name="location_timeout">Не удалось получить местоположение: время ожидания истекло</string>
+    <string name="notification_channel_name">Служба открывателя шлагбаума</string>
+    <string name="notification_title">Открыватель шлагбаума</string>
+    <string name="notification_text">Отслеживание ближайших шлагбаумов</string>
+    <string name="barrier_detected">Обнаружен шлагбаум: %1$s</string>
+    <string name="tap_to_open">Нажмите, чтобы открыть</string>
+
+    <!-- Map Controls -->
+    <string name="map_loading">Загрузка карты…</string>
+    <string name="map_error">Ошибка загрузки карты</string>
+
+    <!-- Section Headers -->
+    <string name="header_location">Местоположение</string>
+    <string name="header_detection_settings">Настройки обнаружения</string>
+
+    <!-- Main Activity -->
+    <string name="app_title">Настройка открывателя шлагбаума</string>
+    <string name="hint_tap_to_add">Нажмите +, чтобы добавить шлагбаум\nДолгое нажатие для удаления</string>
+
+    <!-- Popup Dialog -->
+    <string name="popup_title">Открыть шлагбаум: %1$s?</string>
+    <string name="btn_yes">ДА</string>
+    <string name="btn_no">НЕТ</string>
+    <string name="btn_wait">Подождать</string>
+    <string name="auto_dismiss">Автозакрытие через %1$d сек.</string>
+
+    <!-- Popup Window -->
+    <string name="popup_title_window">Открыть шлагбаум %s?</string>
+    <string name="btn_yes_window">Да</string>
+    <string name="btn_no_window">Нет</string>
+    <string name="popup_calling_window">Звонок %s…</string>
+
+    <!-- Add/Edit Barrier Screen -->
+    <string name="barrier_type">Тип шлагбаума</string>
+    <string name="bidirectional">Двусторонний</string>
+    <string name="one_way">Односторонний</string>
+</resources>
