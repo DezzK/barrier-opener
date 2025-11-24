@@ -19,12 +19,12 @@ package com.barrieropener.app;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
+import android.graphics.PixelFormat;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -37,7 +37,8 @@ public class BarrierPopupActivity extends Activity {
     private static final String TAG = "BarrierPopupActivity";
     private static final int AUTO_DISMISS_DELAY = 10000; // 10 seconds
 
-    private MediaPlayer mediaPlayer;
+    private SoundPool soundPool;
+    private int popupSoundId;
 
     private TextView barrierNameText;
     private TextView autoDismissText;
@@ -52,20 +53,13 @@ public class BarrierPopupActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize media player
-        mediaPlayer = MediaPlayer.create(this, R.raw.popup_sound);
-        mediaPlayer.setLooping(false);
-        mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-            Log.e(TAG, "MediaPlayer error. what: " + what + ", extra: " + extra);
-            return false;
-        });
-
         // Configure window to appear over other apps
         getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
                 WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        getWindow().addFlags(PixelFormat.TRANSLUCENT);
 
         setContentView(R.layout.activity_barrier_popup);
 
@@ -73,7 +67,20 @@ public class BarrierPopupActivity extends Activity {
         getIntentData();
         updateUI();
         setupAutoDismiss();
+        initSoundPool();
         playSound();
+    }
+
+    private void initSoundPool() {
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        soundPool = new SoundPool.Builder()
+                .setMaxStreams(1)
+                .setAudioAttributes(audioAttributes)
+                .build();
+        popupSoundId = soundPool.load(this, R.raw.popup_sound, 1);
     }
 
     private void initViews() {
@@ -121,11 +128,7 @@ public class BarrierPopupActivity extends Activity {
     }
 
     private void playSound() {
-        try {
-            mediaPlayer.start();
-        } catch (Exception e) {
-            Log.e(TAG, "Error playing sound", e);
-        }
+        soundPool.play(popupSoundId, 1.0f, 1.0f, 1, 0, 1.0f);
     }
 
     private void openBarrier() {
@@ -140,7 +143,7 @@ public class BarrierPopupActivity extends Activity {
             try {
                 startActivity(callIntent);
             } catch (SecurityException e) {
-                Log.e(TAG, "Call permission not granted", e);
+                Toast.makeText(this, R.string.error_call_permission_not_granted, Toast.LENGTH_SHORT).show();
             }
         }
         dismissPopup();
@@ -158,9 +161,9 @@ public class BarrierPopupActivity extends Activity {
         if (dismissHandler != null && dismissRunnable != null) {
             dismissHandler.removeCallbacks(dismissRunnable);
         }
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
+        if (soundPool != null) {
+            soundPool.release();
+            soundPool = null;
         }
         super.onDestroy();
     }
