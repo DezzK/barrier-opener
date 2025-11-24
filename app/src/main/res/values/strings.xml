@@ -58,7 +58,6 @@
     <string name="location_permission_denied">Location permission was denied</string>
     <string name="location_service_unavailable">Location service unavailable</string>
     <string name="enable_location_services">Please enable location services</string>
-    <string name="select_location">Please select a location on the map</string>
     <string name="barrier_updated">Barrier updated</string>
     <string name="barrier_added">Barrier added</string>
     <string name="unable_to_get_current_location">Unable to get current location. Please check your location settings.</string>
@@ -83,6 +82,7 @@
     <string name="error_phone_required">Phone number is required</string>
     <string name="error_location_required">Please select a location on the map</string>
     <string name="error_saving_barrier">Error saving barrier: %1$s</string>
+    <string name="error_call_permission_not_granted">Call permission not granted</string>
 
     <!-- Location -->
     <string name="my_location">My Location</string>
@@ -128,4 +128,5 @@
     <string name="barrier_type">Barrier Type</string>
     <string name="bidirectional">Bidirectional</string>
     <string name="one_way">One Way</string>
+    <string name="call">Call</string>
 </resources>

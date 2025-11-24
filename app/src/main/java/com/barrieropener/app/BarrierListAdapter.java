@@ -18,11 +18,16 @@
 package com.barrieropener.app;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import java.util.List;
 import java.util.Locale;
 
@@ -64,6 +69,7 @@ public class BarrierListAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.item_barrier, parent, false);
             holder = new ViewHolder();
+            holder.callButton = convertView.findViewById(R.id.callButton);
             holder.nameText = convertView.findViewById(R.id.textBarrierName);
             holder.phoneText = convertView.findViewById(R.id.textBarrierPhone);
             holder.locationText = convertView.findViewById(R.id.textBarrierLocation);
@@ -87,10 +93,27 @@ public class BarrierListAdapter extends BaseAdapter {
             holder.typeText.setText(R.string.barrier_type_bidirectional);
         }
 
+        holder.callButton.setOnClickListener(v -> {
+            String phoneNumber = barrier.getPhoneNumber();
+            String phoneNumberUri = "tel:" + phoneNumber.trim();
+            Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse(phoneNumberUri));
+
+            // Show a toast with the calling message
+            String callingMessage = context.getString(R.string.popup_calling_window, phoneNumber);
+            Toast.makeText(context, callingMessage, Toast.LENGTH_SHORT).show();
+
+            try {
+                context.startActivity(callIntent);
+            } catch (SecurityException e) {
+                Toast.makeText(context, R.string.error_call_permission_not_granted, Toast.LENGTH_SHORT).show();
+            }
+        });
+
         return convertView;
     }
 
     private static class ViewHolder {
+        Button callButton;
         TextView nameText;
         TextView phoneText;
         TextView locationText;

@@ -18,7 +18,7 @@
 
 <resources>
     <!-- App Name -->
-    <string name="app_name">Открыватель шлагбаума</string>
+    <string name="app_name">Открыватель шлагбаумов</string>
 
     <!-- Menu items -->
     <string name="action_save">Сохранить</string>
@@ -82,6 +82,7 @@
     <string name="error_phone_required">Требуется номер телефона</string>
     <string name="error_location_required">Пожалуйста, выберите местоположение на карте</string>
     <string name="error_saving_barrier">Ошибка сохранения шлагбаума: %1$s</string>
+    <string name="error_call_permission_not_granted">Не дано разрешение на совершение звонков</string>
 
     <!-- Location -->
     <string name="my_location">Мое местоположение</string>
@@ -127,4 +128,5 @@
     <string name="barrier_type">Тип шлагбаума</string>
     <string name="bidirectional">Двусторонний</string>
     <string name="one_way">Односторонний</string>
+    <string name="call">Звонок</string>
 </resources>

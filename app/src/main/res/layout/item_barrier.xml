@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright © 2025 Dezz (https://github.com/DezzK)
   ~
   ~ This program is free software: you can redistribute it and/or modify
@@ -17,55 +16,77 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="?android:attr/selectableItemBackground">
+    android:orientation="horizontal"
+    android:padding="16dp">
 
-    <TextView
-        android:id="@+id/textBarrierName"
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/callButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black" />
-
-    <TextView
-        android:id="@+id/textBarrierPhone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"
-        android:layout_marginTop="4dp" />
+        android:layout_gravity="center_vertical"
+        android:padding="16dp"
+        android:background="@android:color/holo_green_dark"
+        android:text="@string/call"
+        android:textColor="@android:color/white"
+        android:drawableEnd="@android:drawable/ic_menu_call" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="4dp">
+        android:orientation="vertical"
+        android:padding="16dp">
 
         <TextView
-            android:id="@+id/textBarrierLocation"
-            android:layout_width="0dp"
+            android:id="@+id/textBarrierName"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="12sp"
-            android:textColor="@android:color/darker_gray" />
-
-        <TextView
-            android:id="@+id/textBarrierType"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@android:color/holo_blue_dark"
-            android:background="@drawable/badge_background"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp" />
+            tools:text="Barrier Name" />
 
+        <TextView
+            android:id="@+id/textBarrierPhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            tools:text="+79999999999" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textBarrierLocation"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                tools:text="0.555555, 0.111111 (100m)" />
+
+            <TextView
+                android:id="@+id/textBarrierType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/badge_background"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="2dp"
+                android:textColor="@color/badge_text"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="Bidirectional" />
+
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

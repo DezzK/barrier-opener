@@ -81,7 +81,7 @@ public class LocationService extends Service {
         NotificationChannel serviceChannel = new NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.notification_channel_name),
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_LOW
         );
         NotificationManager manager = getSystemService(NotificationManager.class);
         manager.createNotificationChannel(serviceChannel);
@@ -197,10 +197,10 @@ public class LocationService extends Service {
         // Add to recently triggered set to prevent repeated triggers
         recentlyTriggeredBarriers.add(barrier.getId());
 
-        // Remove from set after 60 seconds to allow re-triggering
+        // Remove from set after 5 minutes to allow re-triggering
         handler.postDelayed(() -> {
             recentlyTriggeredBarriers.remove(barrier.getId());
-        }, 60000);
+        }, 300000);
 
         // Launch popup activity
         Intent popupIntent = new Intent(this, BarrierPopupActivity.class);

@@ -40,7 +40,7 @@
         android:textSize="40sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:textColor="@android:color/black"
+        android:textColor="@color/text_primary"
         android:layout_marginBottom="30dp" />
 
     <LinearLayout
@@ -102,7 +102,7 @@
         android:text="@string/auto_dismiss"
         android:textSize="22sp"
         android:gravity="center"
-        android:textColor="@android:color/darker_gray"
+        android:textColor="@color/text_secondary"
         android:layout_marginTop="16dp" />
 
 </LinearLayout>
