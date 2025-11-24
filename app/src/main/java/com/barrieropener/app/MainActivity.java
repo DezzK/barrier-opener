@@ -40,7 +40,6 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 123;
-    private static final int OVERLAY_PERMISSION_REQUEST_CODE = 124;
 
     private ListView barrierListView;
     private FloatingActionButton fabAdd;
@@ -69,24 +68,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, AddEditBarrierActivity.class);
             startActivity(intent);
         });
-
-        barrierListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Barrier barrier = barriers.get(position);
-                Intent intent = new Intent(MainActivity.this, AddEditBarrierActivity.class);
-                intent.putExtra("barrier_id", barrier.getId());
-                startActivity(intent);
-            }
-        });
-
-        barrierListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                showDeleteDialog(barriers.get(position));
-                return true;
-            }
-        });
     }
 
     @Override
@@ -113,26 +94,6 @@ public class MainActivity extends AppCompatActivity {
         if (!hasAllPermissions) {
             ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
         }
-
-        // Check overlay permission for Android 6+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.canDrawOverlays(this)) {
-                showOverlayPermissionDialog();
-            }
-        }
-    }
-
-    private void showOverlayPermissionDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.overlay_permission_title)
-                .setMessage(R.string.overlay_permission_message)
-                .setPositiveButton(R.string.grant_permission, (dialog, which) -> {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:" + getPackageName()));
-                    startActivityForResult(intent, OVERLAY_PERMISSION_REQUEST_CODE);
-                })
-                .setNegativeButton(R.string.cancel, null)
-                .show();
     }
 
     @Override
@@ -158,28 +119,15 @@ public class MainActivity extends AppCompatActivity {
         startForegroundService(new Intent(this, LocationService.class));
     }
 
-    private void loadBarriers() {
+    public void loadBarriers() {
         barriers = dbHelper.getAllBarriers();
 
         if (adapter == null) {
-            adapter = new BarrierListAdapter(this, barriers);
+            adapter = new BarrierListAdapter(this, barriers, dbHelper);
             barrierListView.setAdapter(adapter);
         } else {
             adapter.updateBarriers(barriers);
         }
-    }
-
-    private void showDeleteDialog(Barrier barrier) {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.delete_barrier_title)
-                .setMessage(getString(R.string.delete_barrier_message, barrier.getName()))
-                .setPositiveButton(R.string.delete, (dialog, which) -> {
-                    dbHelper.deleteBarrier(barrier.getId());
-                    loadBarriers();
-                    Toast.makeText(this, R.string.barrier_deleted, Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton(R.string.cancel, null)
-                .show();
     }
 
     @Override

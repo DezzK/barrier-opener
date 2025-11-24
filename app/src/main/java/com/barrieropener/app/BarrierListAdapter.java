@@ -28,17 +28,21 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
+
 import java.util.List;
 import java.util.Locale;
 
 public class BarrierListAdapter extends BaseAdapter {
-    private Context context;
+    private MainActivity context;
     private List<Barrier> barriers;
+    private DatabaseHelper dbHelper;
     private LayoutInflater inflater;
 
-    public BarrierListAdapter(Context context, List<Barrier> barriers) {
+    public BarrierListAdapter(MainActivity context, List<Barrier> barriers, DatabaseHelper dbHelper) {
         this.context = context;
         this.barriers = barriers;
+        this.dbHelper = dbHelper;
         this.inflater = LayoutInflater.from(context);
     }
 
@@ -107,6 +111,27 @@ public class BarrierListAdapter extends BaseAdapter {
             } catch (SecurityException e) {
                 Toast.makeText(context, R.string.error_call_permission_not_granted, Toast.LENGTH_SHORT).show();
             }
+        });
+
+        convertView.setOnClickListener((view) -> {
+            Intent intent = new Intent(context, AddEditBarrierActivity.class);
+            intent.putExtra("barrier_id", barrier.getId());
+            context.startActivity(intent);
+        });
+
+        convertView.setOnLongClickListener((view) -> {
+            new AlertDialog.Builder(context)
+                    .setTitle(R.string.delete_barrier_title)
+                    .setMessage(context.getString(R.string.delete_barrier_message, barrier.getName()))
+                    .setPositiveButton(R.string.delete, (dialog, which) -> {
+                        dbHelper.deleteBarrier(barrier.getId());
+                        context.loadBarriers();
+                        Toast.makeText(context, R.string.barrier_deleted, Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(R.string.cancel, null)
+                    .show();
+
+            return true;
         });
 
         return convertView;
