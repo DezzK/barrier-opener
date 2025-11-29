@@ -98,25 +98,11 @@ public class LocationManager {
         List<String> tmpProviders = locationManager.getAllProviders();
         Log.d(TAG, "Providers: " + tmpProviders);
 
-        Criteria criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        String provider = locationManager.getBestProvider(criteria, true);
-
-        if (provider == null) {
-            notifyError(context.getString(R.string.enable_location_services));
-            return;
-        }
-
-        Log.d(TAG, "Selected provider: " + provider);
-
         try {
-            long minTimeMs = 1000; // 1 second
-            float minDistanceM = 1; // 1 meter
-
             locationManager.requestLocationUpdates(
-                    provider,
-                    minTimeMs,
-                    minDistanceM,
+                    android.location.LocationManager.GPS_PROVIDER,
+                    1000, // 1 second,
+                    1, // 1 meter
                     locationListener,
                     Looper.getMainLooper()
             );
