@@ -159,7 +159,7 @@ public class LocationService extends Service {
         if (location.hasBearing()) {
             float angleDifference = calcAngleDifference(bearingToBarrier, location.getBearing());
 
-            // Check if we're not heading within 90 degrees of the barrier's center
+            // Check if we're not heading within 45 degrees of the barrier's center
             if (angleDifference > 45) {
                 return false;
             }
@@ -173,7 +173,7 @@ public class LocationService extends Service {
         float barrierHeading = ((float) barrier.getHeading() + 270) % 360;
 
         // For one-way barriers, check if we're approaching with a close direction to a barrier's one
-        float angleDifference = calcAngleDifference(bearingToBarrier, barrierHeading);
+        float angleDifference = calcAngleDifference(location.getBearing(), barrierHeading);
 
         Log.d(TAG, "Barrier: " + barrier.getName()
                 + ", Location bearing: " + location.getBearing()
@@ -181,7 +181,7 @@ public class LocationService extends Service {
                 + ", bearing to barrier: " + bearingToBarrier
                 + ", angle difference: " + angleDifference);
 
-        // Check if we're approaching within 90 degrees of the barrier's heading
+        // Check if we're approaching within 45 degrees of the barrier's heading
         return angleDifference <= 45;
     }
 
