@@ -19,14 +19,13 @@ package com.barrieropener.app;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.PixelFormat;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,12 +53,12 @@ public class BarrierPopupActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         // Configure window to appear over other apps
-        getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-        getWindow().addFlags(PixelFormat.TRANSLUCENT);
+//        getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+//                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+//                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+//                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+//        getWindow().addFlags(PixelFormat.TRANSLUCENT);
 
         setContentView(R.layout.activity_barrier_popup);
 
@@ -72,15 +71,22 @@ public class BarrierPopupActivity extends Activity {
     }
 
     private void initSoundPool() {
-        AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_ALARM)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .build();
-        soundPool = new SoundPool.Builder()
-                .setMaxStreams(1)
-                .setAudioAttributes(audioAttributes)
-                .build();
-        popupSoundId = soundPool.load(this, R.raw.popup_sound, 1);
+        if (soundPool != null) {
+            return;
+        }
+        try {
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ASSISTANT)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build();
+            soundPool = new SoundPool.Builder()
+                    .setMaxStreams(1)
+                    .setAudioAttributes(audioAttributes)
+                    .build();
+            popupSoundId = soundPool.load(this, R.raw.popup_sound, 1);
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Error initializing sound pool", e);
+        }
     }
 
     private void initViews() {
@@ -128,7 +134,11 @@ public class BarrierPopupActivity extends Activity {
     }
 
     private void playSound() {
-        soundPool.play(popupSoundId, 1.0f, 1.0f, 1, 0, 1.0f);
+        try {
+            soundPool.play(popupSoundId, 1.0f, 1.0f, 1, 0, 1.0f);
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Error playing sound", e);
+        }
     }
 
     private void openBarrier() {
