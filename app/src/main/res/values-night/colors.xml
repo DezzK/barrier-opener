@@ -17,8 +17,10 @@
   -->
 
 <resources>
-    <color name="background">@android:color/background_dark</color>
-    <color name="text_primary">@android:color/primary_text_dark</color>
-    <color name="text_secondary">@android:color/secondary_text_dark</color>
-    <color name="outline">@android:color/darker_gray</color>
+    <color name="background">#FF15171C</color>
+    <color name="surface">#FF1F2128</color>
+    <color name="surface_variant">#FF2A2D35</color>
+    <color name="text_primary">#FFF1F3F4</color>
+    <color name="text_secondary">#FFB8BCC2</color>
+    <color name="outline">#FF3A3D45</color>
 </resources>

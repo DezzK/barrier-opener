@@ -17,116 +17,116 @@
 
 package com.barrieropener.app;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.View;
-import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.TextView;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int PERMISSION_REQUEST_CODE = 123;
 
     private ListView barrierListView;
-    private FloatingActionButton fabAdd;
+    private View emptyState;
+    private TextView statusText;
+    private ImageView statusDot;
     private DatabaseHelper dbHelper;
     private BarrierListAdapter adapter;
-    private List<Barrier> barriers;
+    private PermissionFlow permissionFlow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initViews();
         dbHelper = new DatabaseHelper(this);
+        permissionFlow = new PermissionFlow(this);
 
-        checkPermissions();
+        initViews();
         loadBarriers();
-        startLocationService();
+
+        permissionFlow.start();
+        startLocationServiceIfReady();
     }
 
     private void initViews() {
         barrierListView = findViewById(R.id.barrierListView);
-        fabAdd = findViewById(R.id.fabAdd);
+        emptyState = findViewById(R.id.emptyState);
+        statusText = findViewById(R.id.statusText);
+        statusDot = findViewById(R.id.statusDot);
+        ExtendedFloatingActionButton fabAdd = findViewById(R.id.fabAdd);
+        fabAdd.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, AddEditBarrierActivity.class)));
 
-        fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, AddEditBarrierActivity.class);
-            startActivity(intent);
-        });
+        findViewById(R.id.btnAbout).setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, AboutActivity.class)));
+    }
+
+    private void updateStatusPill() {
+        int colorRes;
+        int textRes;
+        if (!permissionFlow.hasForegroundLocation()) {
+            colorRes = R.color.status_error;
+            textRes = R.string.status_no_location_permission;
+        } else if (!permissionFlow.hasBackgroundLocation()) {
+            colorRes = R.color.status_warning;
+            textRes = R.string.status_foreground_only;
+        } else if (LocationService.isStarted()) {
+            colorRes = R.color.status_ok;
+            textRes = R.string.status_monitoring;
+        } else {
+            colorRes = R.color.status_warning;
+            textRes = R.string.status_idle;
+        }
+        statusDot.setImageTintList(
+                ContextCompat.getColorStateList(this, colorRes));
+        statusText.setText(textRes);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         loadBarriers();
-    }
-
-    private void checkPermissions() {
-        String[] permissions = {
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.CALL_PHONE
-        };
-
-        boolean hasAllPermissions = true;
-        for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                hasAllPermissions = false;
-                break;
-            }
-        }
-
-        if (!hasAllPermissions) {
-            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
-        }
+        startLocationServiceIfReady();
+        updateStatusPill();
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            boolean allGranted = true;
-            for (int result : grantResults) {
-                if (result != PackageManager.PERMISSION_GRANTED) {
-                    allGranted = false;
-                    break;
-                }
-            }
-
-            if (!allGranted) {
-                Toast.makeText(this, R.string.permissions_required, Toast.LENGTH_LONG).show();
-            }
-        }
+        permissionFlow.onRequestPermissionsResult(requestCode, grantResults);
+        startLocationServiceIfReady();
     }
 
-    private void startLocationService() {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        permissionFlow.onActivityResult(requestCode);
+        startLocationServiceIfReady();
+    }
+
+    private void startLocationServiceIfReady() {
+        if (!permissionFlow.hasForegroundLocation()) return;
         startForegroundService(new Intent(this, LocationService.class));
     }
 
     public void loadBarriers() {
-        barriers = dbHelper.getAllBarriers();
-
+        List<Barrier> barriers = dbHelper.getAllBarriers();
         if (adapter == null) {
-            adapter = new BarrierListAdapter(this, barriers, dbHelper);
+            adapter = new BarrierListAdapter(this, this::loadBarriers, barriers, dbHelper);
             barrierListView.setAdapter(adapter);
         } else {
             adapter.updateBarriers(barriers);
+        }
+        if (emptyState != null) {
+            emptyState.setVisibility(barriers.isEmpty() ? View.VISIBLE : View.GONE);
         }
     }
 

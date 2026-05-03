@@ -17,6 +17,23 @@
 
 apply plugin: 'com.android.application'
 
+String resolveYandexMapkitKey() {
+    def fromEnv = System.getenv('YANDEX_MAPKIT_API_KEY')
+    if (fromEnv) {
+        return fromEnv
+    }
+    def localProps = new Properties()
+    def localPropsFile = rootProject.file('local.properties')
+    if (localPropsFile.exists()) {
+        localPropsFile.withInputStream { localProps.load(it) }
+        def fromProps = localProps.getProperty('YANDEX_MAPKIT_API_KEY')
+        if (fromProps) {
+            return fromProps
+        }
+    }
+    return ''
+}
+
 android {
     namespace "com.barrieropener.app"
 
@@ -24,15 +41,33 @@ android {
 
     defaultConfig {
         minSdk 28
-        //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 31
+        versionCode rootProject.ext.appVersionCode
+        versionName rootProject.ext.appVersionName
+
+        // Set the output APK name (matches the status-widget pattern).
+        setProperty("archivesBaseName", "barrier-opener-${versionName}")
+
+        buildConfigField "String", "YANDEX_MAPKIT_API_KEY", "\"${resolveYandexMapkitKey()}\""
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('../keystore.jks')
+            storePassword System.getenv("KEY_PASSWORD")
+            keyAlias "key0"
+            keyPassword System.getenv("KEY_PASSWORD")
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
         }
         debug {
             debuggable true
@@ -43,14 +78,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
     }
-
-    splits {
-        abi {
-            enable true
-            reset()
-            include "arm64-v8a"
-        }
-    }
 }
 
 dependencies {
@@ -60,4 +87,6 @@ dependencies {
     implementation libs.coordinatorlayout
     implementation libs.material
     implementation libs.yandex.mapkit
+
+    testImplementation 'junit:junit:4.13.2'
 }

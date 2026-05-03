@@ -129,4 +129,38 @@
     <string name="bidirectional">Bidirectional</string>
     <string name="one_way">One Way</string>
     <string name="call">Call</string>
+
+    <!-- Permission flow -->
+    <string name="permission_background_location_title">Background location required</string>
+    <string name="permission_background_location_message">To detect barriers while you drive, the app needs location access \"All the time\". On the next screen, please select the corresponding option.</string>
+    <string name="permission_overlay_title">Display over other apps</string>
+    <string name="permission_overlay_message">The app needs permission to show the barrier confirmation popup over other apps (navigation, music).</string>
+    <string name="permission_battery_title">Disable battery optimizations</string>
+    <string name="permission_battery_message">To prevent the system from killing the location service in the background, please disable battery optimizations for this app.</string>
+    <string name="permission_open_settings">Open settings</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_later">Later</string>
+
+    <!-- Service notification -->
+    <string name="notification_action_stop">Stop</string>
+    <string name="notification_popup_channel_name">Barrier popup</string>
+
+    <!-- Status pill -->
+    <string name="status_monitoring">Monitoring</string>
+    <string name="status_idle">Idle</string>
+    <string name="status_no_location_permission">Location off</string>
+    <string name="status_foreground_only">Foreground only</string>
+
+    <!-- About -->
+    <string name="menu_about">About</string>
+    <string name="about_url" translatable="false">https://dezzk.github.io/barrier-opener/</string>
+    <string name="about_fallback"><![CDATA[
+        <p><b>Barrier Opener</b><br>
+        Calls the barrier phone number automatically when you approach it. Designed for Android car head units.</p>
+        <p><b>Author</b><br>
+        Dezz — Telegram <a href="https://t.me/DezzK">@DezzK</a></p>
+        <p><b>Source code</b><br>
+        <a href="https://github.com/DezzK/barrier-opener">github.com/DezzK/barrier-opener</a></p>
+        <p><i>The full About page is available online at <a href="https://dezzk.github.io/barrier-opener/">dezzk.github.io/barrier-opener</a> when an internet connection is available.</i></p>
+    ]]></string>
 </resources>

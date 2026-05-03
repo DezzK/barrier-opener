@@ -20,10 +20,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"
-        tools:ignore="BackgroundLocationPolicy" />
-    <uses-permission android:name="android.permission.CALL_PHONE"
-        tools:ignore="PermissionImpliesUnsupportedChromeOsHardware" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
@@ -32,12 +30,25 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!--
+      All hardware features are declared "not required" so the APK installs on head units that
+      don't expose the corresponding feature flags (common for car Android units that have GPS
+      but don't advertise the android.hardware.location.gps feature). The actual hardware
+      requirement is enforced at runtime via permission checks.
+    -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
     <application
         android:name=".BarrierOpenerApp"
         android:allowBackup="true"
         android:label="@string/app_name"
-        android:icon="@drawable/ic_barrier"
-        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/Theme.BarrierOpener">
 
         <!-- Main Activity -->
         <activity
@@ -55,17 +66,26 @@
             android:name=".AddEditBarrierActivity"
             android:parentActivityName=".MainActivity" />
 
-        <!-- Popup Dialog Activity -->
+        <!-- About Activity -->
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <!-- Popup Dialog Activity. setShowWhenLocked()/setTurnScreenOn() are called in onCreate
+             rather than declared in the manifest so the activity behaves correctly even when
+             launched on top of an unlocked screen. -->
         <activity
             android:name=".BarrierPopupActivity"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
-            android:taskAffinity="" />
+            android:taskAffinity=""
+            android:theme="@style/Theme.BarrierOpener.Popup" />
 
         <service
             android:name=".LocationService"
             android:enabled="true"
-            android:exported="true"
+            android:exported="false"
             android:foregroundServiceType="location" />
 
         <!-- Boot Receiver -->
@@ -73,11 +93,9 @@
             android:name=".BootReceiver"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
             android:enabled="true"
-            android:exported="true"
-            android:directBootAware="true">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED"/>
                 <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp"
+    android:height="120dp"
+    android:viewportWidth="180"
+    android:viewportHeight="120">
+
+    <!-- Ground line -->
+    <path
+        android:pathData="M10,108 L170,108"
+        android:strokeColor="#9AA0A6"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round" />
+
+    <!-- Pole base plate -->
+    <path
+        android:pathData="M22,98 L42,98 L46,108 L18,108 Z"
+        android:fillColor="#3C4043" />
+
+    <!-- Vertical pole -->
+    <path
+        android:pathData="M29,42 L37,42 L37,98 L29,98 Z"
+        android:fillColor="#3C4043" />
+
+    <!-- Pole top knob -->
+    <path
+        android:pathData="M33,38 m-7,0 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0"
+        android:fillColor="#3C4043" />
+
+    <!-- Boom raised -->
+    <group
+        android:pivotX="33"
+        android:pivotY="42"
+        android:rotation="-15">
+
+        <!-- Outline -->
+        <path
+            android:pathData="M30,38 L168,38 L168,58 L30,58 Z"
+            android:fillColor="#1F2128" />
+
+        <!-- Yellow body -->
+        <path
+            android:pathData="M32,40 L166,40 L166,56 L32,56 Z"
+            android:fillColor="#FFD400" />
+
+        <!-- Diagonal stripes -->
+        <path
+            android:pathData="M50,40 L62,40 L56,56 L44,56 Z"
+            android:fillColor="#1F2128" />
+        <path
+            android:pathData="M74,40 L86,40 L80,56 L68,56 Z"
+            android:fillColor="#1F2128" />
+        <path
+            android:pathData="M98,40 L110,40 L104,56 L92,56 Z"
+            android:fillColor="#1F2128" />
+        <path
+            android:pathData="M122,40 L134,40 L128,56 L116,56 Z"
+            android:fillColor="#1F2128" />
+        <path
+            android:pathData="M146,40 L158,40 L152,56 L140,56 Z"
+            android:fillColor="#1F2128" />
+
+        <!-- Red tip cap -->
+        <path
+            android:pathData="M162,40 L166,40 L166,56 L162,56 Z"
+            android:fillColor="#D93025" />
+    </group>
+</vector>

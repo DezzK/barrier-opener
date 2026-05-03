@@ -26,23 +26,22 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.yandex.mapkit.Animation;
 import com.yandex.mapkit.MapKitFactory;
 import com.yandex.mapkit.geometry.Circle;
@@ -67,13 +66,13 @@ public class AddEditBarrierActivity extends AppCompatActivity implements InputLi
     private static final int MIN_RADIUS = 10;  // meters
     private static final int MAX_RADIUS = 200; // meters
     private static final int DEFAULT_RADIUS = 50; // meters
-    private static final int MAX_HEADING = 360; // degrees
+    private static final int MAX_HEADING = 359; // degrees (0 and 360 are equivalent)
     private static final int DEFAULT_HEADING = 0; // degrees
 
     private EditText editName, editPhone, editLatitude, editLongitude;
     private SeekBar seekRadius, seekHeading;
     private TextView textRadius, textHeading;
-    private RadioButton radioBidirectional, radioOneWay;
+    private MaterialButton radioBidirectional, radioOneWay;
     private ViewGroup headingContainer;
     private MapView mapView;
     private Map map;
@@ -164,9 +163,10 @@ public class AddEditBarrierActivity extends AppCompatActivity implements InputLi
         radioOneWay = findViewById(R.id.radioOneWay);
         headingContainer = findViewById(R.id.headingContainer);
 
-        // Set up barrier type radio group listener
-        RadioGroup radioBarrierType = findViewById(R.id.radioBarrierType);
-        radioBarrierType.setOnCheckedChangeListener((group, checkedId) -> {
+        // Set up barrier type toggle group listener
+        MaterialButtonToggleGroup radioBarrierType = findViewById(R.id.radioBarrierType);
+        radioBarrierType.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) return;
             boolean isOneWay = checkedId == R.id.radioOneWay;
             headingContainer.setVisibility(isOneWay ? View.VISIBLE : View.GONE);
             updatePlacemark();
@@ -232,12 +232,11 @@ public class AddEditBarrierActivity extends AppCompatActivity implements InputLi
 
         // Map controls
         findViewById(R.id.fabMyLocation).setOnClickListener(v -> getCurrentLocation());
-        findViewById(R.id.fabPlus).setOnClickListener(v -> {
-            changeZoomByStep(ZOOM_STEP);
-        });
-        findViewById(R.id.fabMinus).setOnClickListener(v -> {
-            changeZoomByStep(-ZOOM_STEP);
-        });
+        findViewById(R.id.fabPlus).setOnClickListener(v -> changeZoomByStep(ZOOM_STEP));
+        findViewById(R.id.fabMinus).setOnClickListener(v -> changeZoomByStep(-ZOOM_STEP));
+
+        // Primary "Save" action — large bottom button replaces the toolbar diskette icon.
+        findViewById(R.id.btnSave).setOnClickListener(v -> saveBarrier());
     }
 
     private void changeZoomByStep(float value) {
@@ -379,8 +378,8 @@ public class AddEditBarrierActivity extends AppCompatActivity implements InputLi
 
     private void updateLocationFields() {
         if (selectedPoint != null) {
-            editLatitude.setText(getString(R.string.hint_latitude) + ": " + getString(R.string.coordinate_format, selectedPoint.getLatitude()));
-            editLongitude.setText(getString(R.string.hint_longitude) + ": " + getString(R.string.coordinate_format, selectedPoint.getLongitude()));
+            editLatitude.setText(getString(R.string.coordinate_format, selectedPoint.getLatitude()));
+            editLongitude.setText(getString(R.string.coordinate_format, selectedPoint.getLongitude()));
         }
     }
 
@@ -456,20 +455,9 @@ public class AddEditBarrierActivity extends AppCompatActivity implements InputLi
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_add_edit_barrier, menu);
-        return true;
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == android.R.id.home) {
+        if (item.getItemId() == android.R.id.home) {
             finish();
-            return true;
-        } else if (id == R.id.action_save) {
-            saveBarrier();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -532,6 +520,7 @@ public class AddEditBarrierActivity extends AppCompatActivity implements InputLi
             Toast.makeText(this, R.string.barrier_updated, Toast.LENGTH_SHORT).show();
         }
 
+        BarrierRepository.notifyChanged(this);
         setResult(RESULT_OK);
         finish();
     }

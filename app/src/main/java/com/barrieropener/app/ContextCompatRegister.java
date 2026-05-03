@@ -17,24 +17,17 @@
 
 package com.barrieropener.app;
 
-import android.app.Application;
-import android.util.Log;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
 
-import com.yandex.mapkit.MapKitFactory;
+import androidx.core.content.ContextCompat;
 
-public class BarrierOpenerApp extends Application {
-    private static final String TAG = "BarrierOpenerApp";
+final class ContextCompatRegister {
+    private ContextCompatRegister() {}
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        String apiKey = BuildConfig.YANDEX_MAPKIT_API_KEY;
-        if (apiKey == null || apiKey.isEmpty()) {
-            Log.e(TAG, "YANDEX_MAPKIT_API_KEY is not configured. " +
-                    "Set it via env var or local.properties before building.");
-            return;
-        }
-        MapKitFactory.setApiKey(apiKey);
-        MapKitFactory.initialize(this);
+    static void register(Context context, BroadcastReceiver receiver, IntentFilter filter) {
+        ContextCompat.registerReceiver(context, receiver, filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 }

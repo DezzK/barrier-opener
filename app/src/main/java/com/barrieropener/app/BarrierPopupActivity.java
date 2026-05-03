@@ -17,33 +17,41 @@
 
 package com.barrieropener.app;
 
-import android.app.Activity;
+import android.Manifest;
+import android.app.KeyguardManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.content.ContextCompat;
 
-public class BarrierPopupActivity extends Activity {
+public class BarrierPopupActivity extends AppCompatActivity {
     private static final String TAG = "BarrierPopupActivity";
-    private static final int AUTO_DISMISS_DELAY = 10000; // 10 seconds
+    private static final long AUTO_DISMISS_DELAY_MS = 10_000L;
+    private static final long COUNTDOWN_TICK_MS = 1_000L;
 
     private SoundPool soundPool;
     private int popupSoundId;
+    private boolean soundLoaded;
+    private boolean shouldPlaySoundWhenLoaded;
 
     private TextView barrierNameText;
     private TextView autoDismissText;
     private Button btnWait;
-    private Handler dismissHandler;
-    private Runnable dismissRunnable;
+    private CountDownTimer countdown;
 
     private String barrierName;
     private String phoneNumber;
@@ -51,29 +59,29 @@ public class BarrierPopupActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Configure window to appear over other apps
-//        getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-//                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-//                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-//                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-//        getWindow().addFlags(PixelFormat.TRANSLUCENT);
-
+        showOverLockscreen();
         setContentView(R.layout.activity_barrier_popup);
 
         initViews();
         getIntentData();
         updateUI();
-        setupAutoDismiss();
+        startCountdown();
         initSoundPool();
         playSound();
     }
 
-    private void initSoundPool() {
-        if (soundPool != null) {
-            return;
+    private void showOverLockscreen() {
+        setShowWhenLocked(true);
+        setTurnScreenOn(true);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        KeyguardManager km = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        if (km != null) {
+            km.requestDismissKeyguard(this, null);
         }
+    }
+
+    private void initSoundPool() {
+        if (soundPool != null) return;
         try {
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_ASSISTANT)
@@ -83,6 +91,14 @@ public class BarrierPopupActivity extends Activity {
                     .setMaxStreams(1)
                     .setAudioAttributes(audioAttributes)
                     .build();
+            soundPool.setOnLoadCompleteListener((pool, sampleId, status) -> {
+                if (status == 0 && sampleId == popupSoundId) {
+                    soundLoaded = true;
+                    if (shouldPlaySoundWhenLoaded) {
+                        playSoundInternal();
+                    }
+                }
+            });
             popupSoundId = soundPool.load(this, R.raw.popup_sound, 1);
         } catch (RuntimeException e) {
             Log.e(TAG, "Error initializing sound pool", e);
@@ -109,31 +125,49 @@ public class BarrierPopupActivity extends Activity {
 
     private void updateUI() {
         if (barrierName != null) {
-            String title = getString(R.string.popup_title_window, barrierName);
-            barrierNameText.setText(title);
+            barrierNameText.setText(getString(R.string.popup_title_window, barrierName));
         }
-
         autoDismissText.setVisibility(View.VISIBLE);
-        // TODO: Update text in timer
-        autoDismissText.setText(String.format(getString(R.string.auto_dismiss), AUTO_DISMISS_DELAY / 1000));
+        autoDismissText.setText(getString(R.string.auto_dismiss,
+                (int) (AUTO_DISMISS_DELAY_MS / 1000L)));
     }
 
-    private void setupAutoDismiss() {
-        dismissHandler = new Handler();
-        dismissRunnable = this::dismissPopup;
-        dismissHandler.postDelayed(dismissRunnable, AUTO_DISMISS_DELAY);
+    private void startCountdown() {
+        countdown = new CountDownTimer(AUTO_DISMISS_DELAY_MS, COUNTDOWN_TICK_MS) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                int seconds = (int) Math.ceil(millisUntilFinished / 1000.0);
+                autoDismissText.setText(getString(R.string.auto_dismiss, seconds));
+            }
+
+            @Override
+            public void onFinish() {
+                dismissPopup();
+            }
+        };
+        countdown.start();
     }
 
     private void cancelAutoDismiss() {
-        if (dismissHandler != null && dismissRunnable != null) {
-            dismissHandler.removeCallbacks(dismissRunnable);
-            autoDismissText.setVisibility(View.GONE);
+        if (countdown != null) {
+            countdown.cancel();
+            countdown = null;
         }
+        autoDismissText.setVisibility(View.GONE);
         btnWait.setEnabled(false);
         btnWait.setBackground(AppCompatResources.getDrawable(this, R.drawable.button_gray_background));
     }
 
     private void playSound() {
+        if (soundLoaded) {
+            playSoundInternal();
+        } else {
+            shouldPlaySoundWhenLoaded = true;
+        }
+    }
+
+    private void playSoundInternal() {
+        if (soundPool == null) return;
         try {
             soundPool.play(popupSoundId, 1.0f, 1.0f, 1, 0, 1.0f);
         } catch (RuntimeException e) {
@@ -142,34 +176,47 @@ public class BarrierPopupActivity extends Activity {
     }
 
     private void openBarrier() {
-        if (phoneNumber != null && !phoneNumber.isEmpty()) {
-            String phoneNumberUri = "tel:" + phoneNumber.trim();
-            Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse(phoneNumberUri));
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            dismissPopup();
+            return;
+        }
 
-            // Show a toast with the calling message
-            String callingMessage = getString(R.string.popup_calling_window, phoneNumber);
-            Toast.makeText(this, callingMessage, Toast.LENGTH_SHORT).show();
+        Uri telUri = Uri.parse("tel:" + phoneNumber.trim());
+        Toast.makeText(this, getString(R.string.popup_calling_window, phoneNumber),
+                Toast.LENGTH_SHORT).show();
 
-            try {
-                startActivity(callIntent);
-            } catch (SecurityException e) {
-                Toast.makeText(this, R.string.error_call_permission_not_granted, Toast.LENGTH_SHORT).show();
-            }
+        boolean canCallDirectly = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED;
+        Intent intent = new Intent(canCallDirectly ? Intent.ACTION_CALL : Intent.ACTION_DIAL,
+                telUri);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            startActivity(intent);
+        } catch (SecurityException e) {
+            // CALL_PHONE was revoked between the check and the startActivity call — fall back to dialer.
+            Intent dial = new Intent(Intent.ACTION_DIAL, telUri)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(dial);
+        } catch (Exception e) {
+            Toast.makeText(this, getString(R.string.error_call_permission_not_granted),
+                    Toast.LENGTH_SHORT).show();
         }
         dismissPopup();
     }
 
     private void dismissPopup() {
-        if (dismissHandler != null && dismissRunnable != null) {
-            dismissHandler.removeCallbacks(dismissRunnable);
+        if (countdown != null) {
+            countdown.cancel();
+            countdown = null;
         }
         finish();
     }
 
     @Override
     protected void onDestroy() {
-        if (dismissHandler != null && dismissRunnable != null) {
-            dismissHandler.removeCallbacks(dismissRunnable);
+        if (countdown != null) {
+            countdown.cancel();
+            countdown = null;
         }
         if (soundPool != null) {
             soundPool.release();

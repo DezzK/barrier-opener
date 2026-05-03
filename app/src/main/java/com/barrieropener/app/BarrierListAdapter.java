@@ -17,8 +17,10 @@
 
 package com.barrieropener.app;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,18 +31,27 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 
 import java.util.List;
 import java.util.Locale;
 
 public class BarrierListAdapter extends BaseAdapter {
-    private MainActivity context;
-    private List<Barrier> barriers;
-    private DatabaseHelper dbHelper;
-    private LayoutInflater inflater;
 
-    public BarrierListAdapter(MainActivity context, List<Barrier> barriers, DatabaseHelper dbHelper) {
+    public interface Callbacks {
+        void onBarriersChanged();
+    }
+
+    private final Context context;
+    private final Callbacks callbacks;
+    private List<Barrier> barriers;
+    private final DatabaseHelper dbHelper;
+    private final LayoutInflater inflater;
+
+    public BarrierListAdapter(Context context, Callbacks callbacks,
+                              List<Barrier> barriers, DatabaseHelper dbHelper) {
         this.context = context;
+        this.callbacks = callbacks;
         this.barriers = barriers;
         this.dbHelper = dbHelper;
         this.inflater = LayoutInflater.from(context);
@@ -99,17 +110,18 @@ public class BarrierListAdapter extends BaseAdapter {
 
         holder.callButton.setOnClickListener(v -> {
             String phoneNumber = barrier.getPhoneNumber();
-            String phoneNumberUri = "tel:" + phoneNumber.trim();
-            Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse(phoneNumberUri));
+            Uri telUri = Uri.parse("tel:" + phoneNumber.trim());
+            Toast.makeText(context, context.getString(R.string.popup_calling_window, phoneNumber),
+                    Toast.LENGTH_SHORT).show();
 
-            // Show a toast with the calling message
-            String callingMessage = context.getString(R.string.popup_calling_window, phoneNumber);
-            Toast.makeText(context, callingMessage, Toast.LENGTH_SHORT).show();
-
+            boolean canCallDirectly = ContextCompat.checkSelfPermission(context,
+                    Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED;
+            Intent intent = new Intent(canCallDirectly ? Intent.ACTION_CALL : Intent.ACTION_DIAL,
+                    telUri);
             try {
-                context.startActivity(callIntent);
+                context.startActivity(intent);
             } catch (SecurityException e) {
-                Toast.makeText(context, R.string.error_call_permission_not_granted, Toast.LENGTH_SHORT).show();
+                context.startActivity(new Intent(Intent.ACTION_DIAL, telUri));
             }
         });
 
@@ -125,7 +137,8 @@ public class BarrierListAdapter extends BaseAdapter {
                     .setMessage(context.getString(R.string.delete_barrier_message, barrier.getName()))
                     .setPositiveButton(R.string.delete, (dialog, which) -> {
                         dbHelper.deleteBarrier(barrier.getId());
-                        context.loadBarriers();
+                        BarrierRepository.notifyChanged(context);
+                        callbacks.onBarriersChanged();
                         Toast.makeText(context, R.string.barrier_deleted, Toast.LENGTH_SHORT).show();
                     })
                     .setNegativeButton(R.string.cancel, null)

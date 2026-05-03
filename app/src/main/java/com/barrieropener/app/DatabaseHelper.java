@@ -87,9 +87,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_ZOOM_LEVEL, barrier.getZoomLevel());
         values.put(KEY_BARRIER_TYPE, barrier.getBarrierType().getValue());
 
-        long id = db.insert(TABLE_BARRIERS, null, values);
-        db.close();
-        return id;
+        return db.insert(TABLE_BARRIERS, null, values);
     }
 
     // Get a single barrier
@@ -166,7 +164,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        db.close();
         return barriers;
     }
 
@@ -175,6 +172,5 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_BARRIERS, KEY_ID + " = ?",
                 new String[]{String.valueOf(id)});
-        db.close();
     }
 }

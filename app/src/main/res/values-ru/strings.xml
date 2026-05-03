@@ -129,4 +129,37 @@
     <string name="bidirectional">Двусторонний</string>
     <string name="one_way">Односторонний</string>
     <string name="call">Звонок</string>
+
+    <!-- Permission flow -->
+    <string name="permission_background_location_title">Требуется фоновое местоположение</string>
+    <string name="permission_background_location_message">Чтобы обнаруживать шлагбаумы во время движения, приложению нужен доступ к местоположению «Всегда». На следующем экране выберите соответствующий вариант.</string>
+    <string name="permission_overlay_title">Показ поверх других приложений</string>
+    <string name="permission_overlay_message">Приложению нужно разрешение показывать окно подтверждения поверх других приложений (навигация, музыка).</string>
+    <string name="permission_battery_title">Отключение оптимизации батареи</string>
+    <string name="permission_battery_message">Чтобы система не закрывала службу определения местоположения в фоне, отключите оптимизацию батареи для приложения.</string>
+    <string name="permission_open_settings">Открыть настройки</string>
+    <string name="action_continue">Продолжить</string>
+    <string name="action_later">Позже</string>
+
+    <!-- Service notification -->
+    <string name="notification_action_stop">Остановить</string>
+    <string name="notification_popup_channel_name">Окно шлагбаума</string>
+
+    <!-- Status pill -->
+    <string name="status_monitoring">Активно</string>
+    <string name="status_idle">Простой</string>
+    <string name="status_no_location_permission">Геолокация выключена</string>
+    <string name="status_foreground_only">Только в активном окне</string>
+
+    <!-- About -->
+    <string name="menu_about">О приложении</string>
+    <string name="about_fallback"><![CDATA[
+        <p><b>Открыватель шлагбаумов</b><br>
+        Автоматически звонит шлагбауму при подъезде. Для головных устройств на Android.</p>
+        <p><b>Автор</b><br>
+        Dezz — Telegram <a href="https://t.me/DezzK">@DezzK</a></p>
+        <p><b>Исходный код</b><br>
+        <a href="https://github.com/DezzK/barrier-opener">github.com/DezzK/barrier-opener</a></p>
+        <p><i>Полная страница «О приложении» доступна онлайн по адресу <a href="https://dezzk.github.io/barrier-opener/">dezzk.github.io/barrier-opener</a> при наличии подключения к интернету.</i></p>
+    ]]></string>
 </resources>

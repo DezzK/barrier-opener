@@ -18,38 +18,51 @@
 package com.barrieropener.app;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
+/**
+ * Wraps {@link android.location.LocationManager} and feeds the freshest fix to a single
+ * {@link LocationCallback}. Subscribes to GPS_PROVIDER and NETWORK_PROVIDER simultaneously when
+ * available — important on cars without Google Play Services where Fused isn't an option.
+ */
 public class LocationManager {
     private static final String TAG = "LocationManager";
 
+    private static final long MIN_TIME_BETWEEN_UPDATES_MS = 1000L;
+    private static final float MIN_DISTANCE_METERS = 1f;
+
+    /** Newer fix is preferred only if it's at least this much fresher. */
+    private static final long FIX_AGE_PREFERENCE_NS = 5_000_000_000L; // 5 s
+
     private final Context context;
-    private final android.location.LocationManager locationManager;
-    private final ScheduledExecutorService executor;
+    private final android.location.LocationManager systemManager;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     private LocationCallback locationCallback;
     private boolean isListening = false;
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private Location bestKnownLocation;
+    private final List<String> activeProviders = new ArrayList<>();
 
     private final LocationListener locationListener = new LocationListener() {
         @Override
         public void onLocationChanged(@NonNull Location location) {
-            Log.d(TAG, "Location updated: " + location);
+            if (!isBetterThanCurrent(location)) return;
+            bestKnownLocation = location;
             if (locationCallback != null) {
                 mainHandler.post(() -> locationCallback.onLocationUpdated(location));
             }
@@ -58,77 +71,121 @@ public class LocationManager {
         @Override
         public void onProviderEnabled(@NonNull String provider) {
             Log.d(TAG, "Provider enabled: " + provider);
-            if (locationCallback != null) {
-                mainHandler.post(() -> locationCallback.onProviderStatusChanged(provider, true));
+            if (!activeProviders.contains(provider) && isUsefulProvider(provider)) {
+                subscribe(provider);
             }
+            notifyProviderStatus(provider, true);
         }
 
         @Override
         public void onProviderDisabled(@NonNull String provider) {
             Log.d(TAG, "Provider disabled: " + provider);
-            if (locationCallback != null) {
-                mainHandler.post(() -> locationCallback.onProviderStatusChanged(provider, false));
-            }
+            activeProviders.remove(provider);
+            notifyProviderStatus(provider, false);
         }
 
         @Override
-        public void onStatusChanged(String provider, int status, android.os.Bundle extras) {
-            Log.d(TAG, String.format("Provider status changed. Provider: %s, status: %d", provider, status));
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+            // No-op: deprecated callback, real status comes via onProviderEnabled/Disabled.
         }
     };
 
     public LocationManager(Context context) {
         this.context = context.getApplicationContext();
-        this.locationManager = context.getSystemService(android.location.LocationManager.class);
-        this.executor = Executors.newSingleThreadScheduledExecutor();
+        this.systemManager = context.getSystemService(android.location.LocationManager.class);
     }
 
     public void startLocationUpdates(LocationCallback callback) {
-        if (isListening)
-            return;
-
         this.locationCallback = callback;
-        this.isListening = true;
+        if (isListening) return;
 
         if (!hasLocationPermission()) {
             notifyError(context.getString(R.string.location_permission_required));
             return;
         }
 
-        List<String> tmpProviders = locationManager.getAllProviders();
-        Log.d(TAG, "Providers: " + tmpProviders);
+        for (String provider : systemManager.getAllProviders()) {
+            if (!isUsefulProvider(provider)) continue;
+            if (!systemManager.isProviderEnabled(provider)) {
+                Log.d(TAG, "Provider " + provider + " disabled at start");
+                continue;
+            }
+            subscribe(provider);
+        }
 
+        if (activeProviders.isEmpty()) {
+            notifyError(context.getString(R.string.location_service_unavailable));
+            return;
+        }
+
+        isListening = true;
+    }
+
+    @SuppressLint("MissingPermission")
+    private void subscribe(String provider) {
         try {
-            locationManager.requestLocationUpdates(
-                    android.location.LocationManager.GPS_PROVIDER,
-                    1000, // 1 second,
-                    1, // 1 meter
+            systemManager.requestLocationUpdates(
+                    provider,
+                    MIN_TIME_BETWEEN_UPDATES_MS,
+                    MIN_DISTANCE_METERS,
                     locationListener,
                     Looper.getMainLooper()
             );
+            activeProviders.add(provider);
+            Log.d(TAG, "Subscribed to provider: " + provider);
         } catch (SecurityException e) {
-            Log.e(TAG, "SecurityException in startLocationUpdates", e);
+            Log.e(TAG, "SecurityException subscribing to " + provider, e);
             notifyError(context.getString(R.string.location_permission_denied));
+        } catch (IllegalArgumentException e) {
+            Log.w(TAG, "Provider not available: " + provider, e);
         }
     }
 
     public void stopLocationUpdates() {
         if (!isListening) return;
-
         try {
-            locationManager.removeUpdates(locationListener);
+            systemManager.removeUpdates(locationListener);
         } catch (SecurityException e) {
             Log.e(TAG, "SecurityException in stopLocationUpdates", e);
         } finally {
+            activeProviders.clear();
             isListening = false;
         }
     }
 
     public boolean hasLocationPermission() {
         return ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private boolean isUsefulProvider(String provider) {
+        return android.location.LocationManager.GPS_PROVIDER.equals(provider)
+                || android.location.LocationManager.NETWORK_PROVIDER.equals(provider);
+    }
+
+    /**
+     * Picks the better of two fixes. Prefers fresher fixes; if comparable in age, prefers more
+     * accurate ones. GPS is preferred over network when both are recent.
+     */
+    private boolean isBetterThanCurrent(Location candidate) {
+        if (bestKnownLocation == null) return true;
+        long ageDeltaNs = candidate.getElapsedRealtimeNanos()
+                - bestKnownLocation.getElapsedRealtimeNanos();
+        if (ageDeltaNs > FIX_AGE_PREFERENCE_NS) return true;
+        if (ageDeltaNs < -FIX_AGE_PREFERENCE_NS) return false;
+
+        boolean candidateGps = android.location.LocationManager.GPS_PROVIDER
+                .equals(candidate.getProvider());
+        boolean currentGps = android.location.LocationManager.GPS_PROVIDER
+                .equals(bestKnownLocation.getProvider());
+        if (candidateGps && !currentGps) return true;
+        if (!candidateGps && currentGps) return false;
+
+        if (candidate.hasAccuracy() && bestKnownLocation.hasAccuracy()) {
+            return candidate.getAccuracy() < bestKnownLocation.getAccuracy();
+        }
+        return ageDeltaNs >= 0;
     }
 
     private void notifyError(String error) {
@@ -137,16 +194,20 @@ public class LocationManager {
         }
     }
 
+    private void notifyProviderStatus(String provider, boolean enabled) {
+        if (locationCallback != null) {
+            mainHandler.post(() -> locationCallback.onProviderStatusChanged(provider, enabled));
+        }
+    }
+
     public void destroy() {
         stopLocationUpdates();
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(100, TimeUnit.MILLISECONDS)) {
-                executor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
+    }
+
+    /** Time in nanoseconds since the most recent fix; used for diagnostics. */
+    public long lastFixAgeMs() {
+        if (bestKnownLocation == null) return Long.MAX_VALUE;
+        return (SystemClock.elapsedRealtimeNanos() - bestKnownLocation.getElapsedRealtimeNanos())
+                / 1_000_000L;
     }
 }
