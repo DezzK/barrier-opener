@@ -1,5 +1,5 @@
 /*
- * Copyright © 2025 Dezz (https://github.com/DezzK)
+ * Copyright © 2025-2026 Dezz (https://github.com/DezzK)
  */
 package com.barrieropener.app;
 
