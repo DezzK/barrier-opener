@@ -63,9 +63,10 @@ public class LocationManager {
         public void onLocationChanged(@NonNull Location location) {
             if (!isBetterThanCurrent(location)) return;
             bestKnownLocation = location;
-            if (locationCallback != null) {
-                mainHandler.post(() -> locationCallback.onLocationUpdated(location));
-            }
+            mainHandler.post(() -> {
+                LocationCallback cb = locationCallback;
+                if (cb != null) cb.onLocationUpdated(location);
+            });
         }
 
         @Override
@@ -148,6 +149,10 @@ public class LocationManager {
         } catch (SecurityException e) {
             Log.e(TAG, "SecurityException in stopLocationUpdates", e);
         } finally {
+            // Drop any fix already queued on the main thread and release the callback, so a delivery
+            // posted just before teardown can't run against a destroyed Activity (and can't retain it).
+            mainHandler.removeCallbacksAndMessages(null);
+            locationCallback = null;
             activeProviders.clear();
             isListening = false;
         }
@@ -165,39 +170,47 @@ public class LocationManager {
     }
 
     /**
-     * Picks the better of two fixes. Prefers fresher fixes; if comparable in age, prefers more
-     * accurate ones. GPS is preferred over network when both are recent.
+     * Picks the better of two fixes. The car is in motion, so freshness matters far more than a
+     * couple of meters of accuracy: any newer GPS fix beats any GPS fix we already have, and
+     * GPS always wins over network when both are within {@link #FIX_AGE_PREFERENCE_NS}. Network
+     * fixes are accepted only when no GPS has come in for longer than that window — they act as
+     * a fallback when GPS is lost.
      */
     private boolean isBetterThanCurrent(Location candidate) {
         if (bestKnownLocation == null) return true;
-        long ageDeltaNs = candidate.getElapsedRealtimeNanos()
-                - bestKnownLocation.getElapsedRealtimeNanos();
-        if (ageDeltaNs > FIX_AGE_PREFERENCE_NS) return true;
-        if (ageDeltaNs < -FIX_AGE_PREFERENCE_NS) return false;
 
         boolean candidateGps = android.location.LocationManager.GPS_PROVIDER
                 .equals(candidate.getProvider());
         boolean currentGps = android.location.LocationManager.GPS_PROVIDER
                 .equals(bestKnownLocation.getProvider());
-        if (candidateGps && !currentGps) return true;
-        if (!candidateGps && currentGps) return false;
 
-        if (candidate.hasAccuracy() && bestKnownLocation.hasAccuracy()) {
-            return candidate.getAccuracy() < bestKnownLocation.getAccuracy();
+        long ageDeltaNs = candidate.getElapsedRealtimeNanos()
+                - bestKnownLocation.getElapsedRealtimeNanos();
+
+        // GPS always wins over a recent network fix.
+        if (candidateGps && !currentGps) return true;
+
+        // Network fix only useful when GPS is going stale.
+        if (!candidateGps && currentGps) {
+            return -ageDeltaNs > FIX_AGE_PREFERENCE_NS; // current GPS older than window
         }
+
+        // Same provider class — pick the newer one.
         return ageDeltaNs >= 0;
     }
 
     private void notifyError(String error) {
-        if (locationCallback != null) {
-            mainHandler.post(() -> locationCallback.onLocationError(error));
-        }
+        mainHandler.post(() -> {
+            LocationCallback cb = locationCallback;
+            if (cb != null) cb.onLocationError(error);
+        });
     }
 
     private void notifyProviderStatus(String provider, boolean enabled) {
-        if (locationCallback != null) {
-            mainHandler.post(() -> locationCallback.onProviderStatusChanged(provider, enabled));
-        }
+        mainHandler.post(() -> {
+            LocationCallback cb = locationCallback;
+            if (cb != null) cb.onProviderStatusChanged(provider, enabled);
+        });
     }
 
     public void destroy() {

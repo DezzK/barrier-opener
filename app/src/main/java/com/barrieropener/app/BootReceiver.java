@@ -35,12 +35,18 @@ public class BootReceiver extends BroadcastReceiver {
         if (context == null || intent == null) return;
         String action = intent.getAction();
         if (!Intent.ACTION_BOOT_COMPLETED.equals(action)
+                && !Intent.ACTION_LOCKED_BOOT_COMPLETED.equals(action)
                 && !ACTION_QUICKBOOT_POWERON.equals(action)) {
             return;
         }
         Log.d(TAG, "Broadcast received: " + action);
 
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+        // Permission check is best-effort: on LOCKED_BOOT_COMPLETED before unlock the package
+        // manager may not have user-protected permission state yet. We still try to start the
+        // service; the system will queue it until unlock and will reject the start later if the
+        // permission really isn't granted.
+        if (Intent.ACTION_BOOT_COMPLETED.equals(action)
+                && ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             Log.w(TAG, "Location permission missing, skip auto-start");
             return;

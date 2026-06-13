@@ -78,6 +78,20 @@ android {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
     }
+
+    lint {
+        // The app targets API 31 on purpose (audience is Android 10–12 head units) and is not
+        // published on Google Play, so the "target API must be 33+" rule must not fail the build.
+        disable 'ExpiredTargetSdkVersion'
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include "arm64-v8a"
+        }
+    }
 }
 
 dependencies {

@@ -115,6 +115,7 @@
     <string name="btn_yes_window">Yes</string>
     <string name="btn_no_window">No</string>
     <string name="popup_calling_window">Calling %s…</string>
+    <string name="popup_nearby_header">Also in range:</string>
 
     <!-- Location Service -->
     <string name="location_timeout">Could not get location: timeout</string>

@@ -123,6 +123,7 @@
     <string name="btn_yes_window">Да</string>
     <string name="btn_no_window">Нет</string>
     <string name="popup_calling_window">Звонок %s…</string>
+    <string name="popup_nearby_header">Также в зоне:</string>
 
     <!-- Add/Edit Barrier Screen -->
     <string name="barrier_type">Тип шлагбаума</string>

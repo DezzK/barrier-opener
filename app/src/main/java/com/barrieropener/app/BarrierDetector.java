@@ -27,8 +27,9 @@ import android.location.Location;
 public final class BarrierDetector {
 
     public static final double APPROACH_ANGLE_TOLERANCE_DEG = 45.0;
-    /** Below this speed (m/s) we don't trust device bearing for one-way matching. */
-    public static final double MIN_SPEED_FOR_BEARING_MS = 1.4; // ~5 km/h
+    /** Below this speed (m/s) we don't trust device bearing for one-way matching. Kept low so
+     *  triggering isn't delayed when the car is creeping toward a barrier. */
+    public static final double MIN_SPEED_FOR_BEARING_MS = 0.3; // ~1 km/h
 
     private BarrierDetector() {}
 

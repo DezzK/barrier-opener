@@ -88,15 +88,20 @@
             android:exported="false"
             android:foregroundServiceType="location" />
 
-        <!-- Boot Receiver -->
+        <!-- Boot Receiver. directBootAware + LOCKED_BOOT_COMPLETED so the receiver fires before
+             the user unlocks the device (important on car head units where some firmwares only
+             deliver LOCKED_BOOT_COMPLETED reliably). The receiver itself doesn't touch user
+             storage; it just queues a startForegroundService that the system holds until unlock. -->
         <receiver
             android:name=".BootReceiver"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:directBootAware="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
     </application>

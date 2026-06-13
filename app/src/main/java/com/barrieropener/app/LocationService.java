@@ -29,7 +29,9 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LocationService extends Service {
@@ -37,7 +39,7 @@ public class LocationService extends Service {
     private static final String CHANNEL_ID = "BarrierOpenerServiceChannel";
     private static final String POPUP_CHANNEL_ID = "BarrierPopupChannel";
     private static final int NOTIFICATION_ID = 1;
-    private static final int POPUP_NOTIFICATION_ID = 2;
+    public static final int POPUP_NOTIFICATION_ID = 2;
     public static final String ACTION_STOP = "com.barrieropener.app.STOP";
 
     private static volatile boolean _isStarted = false;
@@ -140,36 +142,81 @@ public class LocationService extends Service {
         List<Barrier> barriers = repository.getAll();
         triggerState.releaseFarBarriers(location.getLatitude(), location.getLongitude(), barriers);
 
-        for (Barrier barrier : barriers) {
-            if (triggerState.isTriggered(barrier.getId())) continue;
-            BarrierDetector.Result result = BarrierDetector.evaluate(barrier, location);
-            if (result == BarrierDetector.Result.IN_RANGE) {
-                triggerBarrierPopup(barrier);
+        NearbyResolver.Resolution res = NearbyResolver.resolve(
+                barriers,
+                BarrierDetector.Fix.from(location),
+                id -> triggerState.isTriggered(id));
+
+        if (res.primary == null) {
+            return; // Nothing new to suggest by direction.
+        }
+
+        boolean delivered = triggerBarrierPopup(res.primary, res.inZone);
+
+        // Suppress every fresh directional match so popups don't stack — but only once we actually
+        // reached the user. If neither the direct launch nor the notification can surface (e.g. all
+        // notifications are blocked and background-activity launch is denied), leave the flags unset
+        // so the next location update retries instead of silently muting the barrier. Each suppressed
+        // match still appears in the popup's nearby list with its own call button.
+        if (delivered) {
+            for (Barrier b : res.freshMatches) {
+                triggerState.markTriggered(b.getId());
             }
         }
     }
 
-    private void triggerBarrierPopup(Barrier barrier) {
-        triggerState.markTriggered(barrier.getId());
+    private boolean triggerBarrierPopup(Barrier primary, List<Barrier> inZone) {
+        Intent popupIntent = buildPopupIntent(primary, inZone);
 
-        Intent popupIntent = new Intent(this, BarrierPopupActivity.class);
-        popupIntent.putExtra("barrier_id", barrier.getId());
-        popupIntent.putExtra("barrier_name", barrier.getName());
-        popupIntent.putExtra("barrier_phone", barrier.getPhoneNumber());
-        popupIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-        // Try to launch the popup activity directly. On Android 10+ background-activity launch is
-        // restricted, so we always also post a high-priority notification with a full-screen intent
-        // — the system will surface that on the lock screen / over other apps as a fallback.
+        // Best effort: a direct launch works in the foreground / on lenient OEMs, but on Android
+        // 10–12 a background-activity start from a service is silently dropped, so we don't rely on
+        // it. The high-priority full-screen-intent notification is the reliable path that surfaces
+        // over other apps and the lock screen, so its deliverability is what gates suppression.
         try {
             startActivity(popupIntent);
         } catch (Exception e) {
             Log.w(TAG, "Could not start popup activity directly", e);
         }
-        showPopupFullScreenNotification(barrier, popupIntent);
+        return showPopupFullScreenNotification(primary, popupIntent);
     }
 
-    private void showPopupFullScreenNotification(Barrier barrier, Intent popupIntent) {
+    private Intent buildPopupIntent(Barrier primary, List<Barrier> inZone) {
+        // The nearby list is every in-zone barrier except the one already shown as the suggestion.
+        List<Barrier> nearby = new ArrayList<>();
+        for (Barrier b : inZone) {
+            if (b.getId() != primary.getId()) {
+                nearby.add(b);
+            }
+        }
+
+        long[] ids = new long[nearby.size()];
+        String[] names = new String[nearby.size()];
+        String[] phones = new String[nearby.size()];
+        for (int i = 0; i < nearby.size(); i++) {
+            ids[i] = nearby.get(i).getId();
+            names[i] = nearby.get(i).getName();
+            phones[i] = nearby.get(i).getPhoneNumber();
+        }
+
+        Intent popupIntent = new Intent(this, BarrierPopupActivity.class);
+        popupIntent.putExtra("barrier_id", primary.getId());
+        popupIntent.putExtra("barrier_name", primary.getName());
+        popupIntent.putExtra("barrier_phone", primary.getPhoneNumber());
+        popupIntent.putExtra("nearby_ids", ids);
+        popupIntent.putExtra("nearby_names", names);
+        popupIntent.putExtra("nearby_phones", phones);
+        popupIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        return popupIntent;
+    }
+
+    /** Posts the heads-up / full-screen popup notification. Returns whether it can actually reach
+     *  the user (notifications enabled and the popup channel not blocked). */
+    private boolean showPopupFullScreenNotification(Barrier barrier, Intent popupIntent) {
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (manager == null) {
+            return false;
+        }
+
         PendingIntent fullScreenPi = PendingIntent.getActivity(
                 this, (int) barrier.getId(), popupIntent,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
@@ -186,10 +233,16 @@ public class LocationService extends Service {
                 .setTimeoutAfter(15_000L)
                 .build();
 
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        if (manager != null) {
-            manager.notify(POPUP_NOTIFICATION_ID, n);
+        manager.notify(POPUP_NOTIFICATION_ID, n);
+        return popupNotificationsDeliverable(manager);
+    }
+
+    private boolean popupNotificationsDeliverable(NotificationManager manager) {
+        if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            return false;
         }
+        NotificationChannel channel = manager.getNotificationChannel(POPUP_CHANNEL_ID);
+        return channel != null && channel.getImportance() != NotificationManager.IMPORTANCE_NONE;
     }
 
     @Override
