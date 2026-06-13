@@ -68,9 +68,21 @@ android {
         release {
             minifyEnabled false
             signingConfig signingConfigs.release
+
+            // Release ships a single architecture (audience runs arm64-v8a). abiFilters (not ABI
+            // splits) keeps the output one file named "barrier-opener-<ver>-release.apk" with no
+            // architecture suffix, so the release workflow can rename it deterministically.
+            ndk {
+                abiFilters "arm64-v8a"
+            }
         }
         debug {
             debuggable true
+            // Emulator-friendly set, minus the unused 32-bit ARM (no armeabi-v7a): runs on arm64
+            // and x86/x86_64 emulators.
+            ndk {
+                abiFilters "arm64-v8a", "x86", "x86_64"
+            }
         }
     }
 
@@ -83,14 +95,6 @@ android {
         // The app targets API 31 on purpose (audience is Android 10–12 head units) and is not
         // published on Google Play, so the "target API must be 33+" rule must not fail the build.
         disable 'ExpiredTargetSdkVersion'
-    }
-
-    splits {
-        abi {
-            enable true
-            reset()
-            include "arm64-v8a"
-        }
     }
 }
 
