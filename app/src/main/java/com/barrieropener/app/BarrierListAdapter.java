@@ -17,11 +17,8 @@
 
 package com.barrieropener.app;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +28,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.content.ContextCompat;
 
 import java.util.List;
 import java.util.Locale;
@@ -108,22 +104,8 @@ public class BarrierListAdapter extends BaseAdapter {
             holder.typeText.setText(R.string.barrier_type_bidirectional);
         }
 
-        holder.callButton.setOnClickListener(v -> {
-            String phoneNumber = barrier.getPhoneNumber();
-            Uri telUri = Uri.parse("tel:" + phoneNumber.trim());
-            Toast.makeText(context, context.getString(R.string.popup_calling_window, phoneNumber),
-                    Toast.LENGTH_SHORT).show();
-
-            boolean canCallDirectly = ContextCompat.checkSelfPermission(context,
-                    Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED;
-            Intent intent = new Intent(canCallDirectly ? Intent.ACTION_CALL : Intent.ACTION_DIAL,
-                    telUri);
-            try {
-                context.startActivity(intent);
-            } catch (SecurityException e) {
-                context.startActivity(new Intent(Intent.ACTION_DIAL, telUri));
-            }
-        });
+        holder.callButton.setOnClickListener(v ->
+                CallHelper.placeCall(context, barrier.getPhoneNumber()));
 
         convertView.setOnClickListener((view) -> {
             Intent intent = new Intent(context, AddEditBarrierActivity.class);

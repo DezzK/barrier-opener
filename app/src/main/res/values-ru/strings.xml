@@ -83,6 +83,7 @@
     <string name="error_location_required">Пожалуйста, выберите местоположение на карте</string>
     <string name="error_saving_barrier">Ошибка сохранения шлагбаума: %1$s</string>
     <string name="error_call_permission_not_granted">Не дано разрешение на совершение звонков</string>
+    <string name="error_no_call_app">На устройстве нет приложения для звонков</string>
 
     <!-- Location -->
     <string name="my_location">Мое местоположение</string>

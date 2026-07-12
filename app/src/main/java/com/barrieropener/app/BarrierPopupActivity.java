@@ -17,16 +17,13 @@
 
 package com.barrieropener.app;
 
-import android.Manifest;
 import android.app.KeyguardManager;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
@@ -36,11 +33,9 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
-import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -380,30 +375,7 @@ public class BarrierPopupActivity extends AppCompatActivity {
     }
 
     private void placeCall(String phone) {
-        if (phone == null || phone.isEmpty()) {
-            return;
-        }
-
-        Uri telUri = Uri.parse("tel:" + phone.trim());
-        Toast.makeText(this, getString(R.string.popup_calling_window, phone),
-                Toast.LENGTH_SHORT).show();
-
-        boolean canCallDirectly = ContextCompat.checkSelfPermission(this,
-                Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED;
-        Intent intent = new Intent(canCallDirectly ? Intent.ACTION_CALL : Intent.ACTION_DIAL,
-                telUri);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        try {
-            startActivity(intent);
-        } catch (SecurityException e) {
-            // CALL_PHONE was revoked between the check and the startActivity call — fall back to dialer.
-            Intent dial = new Intent(Intent.ACTION_DIAL, telUri)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(dial);
-        } catch (Exception e) {
-            Toast.makeText(this, getString(R.string.error_call_permission_not_granted),
-                    Toast.LENGTH_SHORT).show();
-        }
+        CallHelper.placeCall(this, phone);
     }
 
     private void dismissPopup() {

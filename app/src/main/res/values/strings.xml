@@ -83,6 +83,7 @@
     <string name="error_location_required">Please select a location on the map</string>
     <string name="error_saving_barrier">Error saving barrier: %1$s</string>
     <string name="error_call_permission_not_granted">Call permission not granted</string>
+    <string name="error_no_call_app">No app on this device can place calls</string>
 
     <!-- Location -->
     <string name="my_location">My Location</string>
